@@ -1,0 +1,24 @@
+{
+  "name": "@jjazzme/utils",
+  "version": "0.0.2",
+  "description": "Old school utils",
+  "main": "./index",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jjazzme/utils.git"
+  },
+  "keywords": [
+    "ts",
+    "utils",
+    "typescript"
+  ],
+  "author": "Eugene Mironiouk <@jjazzme> (https://jjazz.me)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jjazzme/utils/issues"
+  },
+  "homepage": "https://github.com/jjazzme/utils#readme"
+}
