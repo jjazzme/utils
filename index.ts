@@ -1,4 +1,8 @@
-export class Utils {
+class Utils {
+    test(source: number) {
+        return source * 2;
+    }
+
     sleep(ms: number) {
         return new Promise( resolve => setTimeout(resolve, ms) );
     }
@@ -49,5 +53,9 @@ export class Utils {
     }
 }
 
-export const utils = new Utils();
+const utils = new Utils();
+
+export {
+    utils
+}
 
