@@ -1,8 +1,11 @@
 {
   "name": "@jjazzme/utils",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Old school utils",
   "main": "./index",
+  "type": "module",
+  "exports": "./index.ts",
+  "files": ["./*.ts"],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
