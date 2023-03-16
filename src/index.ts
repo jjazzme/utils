@@ -1,4 +1,7 @@
 class Utils {
+
+    constructor() {}
+
     test(source: number) {
         return source * 2;
     }
@@ -55,7 +58,20 @@ class Utils {
 
 const utils = new Utils();
 
-export {
-    utils
+type TInstances = {
+    [key: string]: InstanceType<any>
 }
+
+class DynamicInstance {
+    constructor (instanceName: string, instances: TInstances, ...args: any[]) {
+        return new instances[instanceName](...args);
+    }
+}
+
+export {
+    utils,
+    TInstances,
+    DynamicInstance
+}
+
 

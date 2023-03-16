@@ -1,4 +1,5 @@
 class Utils {
+    constructor() { }
     test(source) {
         return source * 2;
     }

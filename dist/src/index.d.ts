@@ -1,4 +1,5 @@
 declare class Utils {
+    constructor();
     test(source: number): number;
     sleep(ms: number): Promise<unknown>;
     instanceClone<T>(instance: T): T;

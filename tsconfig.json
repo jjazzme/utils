@@ -4,8 +4,15 @@
     "target": "es2022",
     "strict": true,
     "rootDir": ".",
-    "declaration": true
+    "declaration": true,
+    "moduleResolution": "NodeNext",
+    "outDir": "./dist",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": false,
+    "pretty": false,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true
   },
-  "include": ["./*.ts"],
+  "include": ["./src/**/*.ts"],
   "exclude": ["./example"]
 }
