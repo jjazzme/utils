@@ -58,19 +58,22 @@ class Utils {
 
 const utils = new Utils();
 
-type TInstances = {
-    [key: string]: InstanceType<any>
+type TDynamicInstance = {
+    [key: string]: {
+        Constructor: InstanceType<any>,
+        tags?: string[]
+    }
 }
 
 class DynamicInstance {
-    constructor (instanceName: string, instances: TInstances, ...args: any[]) {
-        return new instances[instanceName](...args);
+    constructor (instanceName: string, instances: TDynamicInstance, ...args: any[]) {
+        return new instances[instanceName].Constructor(...args);
     }
 }
 
 export {
     utils,
-    TInstances,
+    TDynamicInstance,
     DynamicInstance
 }
 

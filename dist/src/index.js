@@ -48,4 +48,9 @@ class Utils {
     }
 }
 const utils = new Utils();
-export { utils };
+class DynamicInstance {
+    constructor(instanceName, instances, ...args) {
+        return new instances[instanceName].Constructor(...args);
+    }
+}
+export { utils, DynamicInstance };

@@ -10,4 +10,13 @@ declare class Utils {
     toJson<T extends Record<string, any>>(source: T): Partial<T>;
 }
 declare const utils: Utils;
-export { utils };
+type TDynamicInstance = {
+    [key: string]: {
+        Constructor: InstanceType<any>;
+        tags?: string[];
+    };
+};
+declare class DynamicInstance {
+    constructor(instanceName: string, instances: TDynamicInstance, ...args: any[]);
+}
+export { utils, TDynamicInstance, DynamicInstance };
