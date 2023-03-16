@@ -61,7 +61,7 @@ const utils = new Utils();
 type TDynamicInstance = {
     [key: string]: {
         Constructor: InstanceType<any>,
-        tags?: string[]
+        tags: string[]
     }
 }
 
