@@ -1,6 +1,6 @@
 {
   "name": "@jjazzme/utils",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Old school utils",
   "engines": {
     "node": ">=14.16"
@@ -33,9 +33,6 @@
     "url": "https://github.com/jjazzme/utils/issues"
   },
   "homepage": "https://github.com/jjazzme/utils#readme",
-  "peerDependencies": {
-    "got": "^12.6.0"
-  },
   "devDependencies": {
     "@types/node": "^18.15.3",
     "rimraf": "^4.4.0",
