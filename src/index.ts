@@ -10,6 +10,15 @@ class Utils {
         return new Promise( resolve => setTimeout(resolve, ms) );
     }
 
+    wait(condition: () => boolean) {
+        return new Promise<void>( async (resolve) => {
+            while (!condition()) {
+                await this.sleep(100);
+            }
+            resolve();
+        });
+    }
+
     instanceClone<T>(instance: T): T {
         // @ts-ignore
         const copy = new (instance.constructor as { new (): T })();

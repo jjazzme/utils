@@ -6,6 +6,14 @@ class Utils {
     sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
+    wait(condition) {
+        return new Promise(async (resolve) => {
+            while (!condition()) {
+                await this.sleep(100);
+            }
+            resolve();
+        });
+    }
     instanceClone(instance) {
         // @ts-ignore
         const copy = new instance.constructor();

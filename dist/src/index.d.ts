@@ -2,6 +2,7 @@ declare class Utils {
     constructor();
     test(source: number): number;
     sleep(ms: number): Promise<unknown>;
+    wait(condition: () => boolean): Promise<void>;
     instanceClone<T>(instance: T): T;
     instanceCreate<T>(type: {
         new (): T;
@@ -13,7 +14,7 @@ declare const utils: Utils;
 type TDynamicInstance = {
     [key: string]: {
         Constructor: InstanceType<any>;
-        tags?: string[];
+        tags: string[];
     };
 };
 declare class DynamicInstance {
