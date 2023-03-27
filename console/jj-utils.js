@@ -73,19 +73,22 @@ async function repack() {
     execSync(`npm install`, { stdio: 'inherit' });
     console.log('REPACK OK');
 }
-async function clean(path) {
-    execSync(`rm -rf ${path}/*.js`, { stdio: 'inherit' });
-    execSync(`rm -rf ${path}/*.d.ts`, { stdio: 'inherit' });
+async function clean(_path) {
+    const treeRider = async (path) => {
+        execSync(`rm -rf ${path}/*.js`, { stdio: 'inherit' });
+        execSync(`rm -rf ${path}/*.d.ts`, { stdio: 'inherit' });
 
-    const dirents =( await readdir(path, { withFileTypes: true }));
-    for (let dirent of dirents.filter(dirent => dirent.isDirectory())) {
-        const _root = `${path}/${dirent.name}`;
-        await clean(_root);
+        const dirents =( await readdir(path, { withFileTypes: true }));
+        for (let dirent of dirents.filter(dirent => dirent.isDirectory())) {
+            const _root = `${path}/${dirent.name}`;
+            await treeRider(_root);
+        }
     }
+    await treeRider(_path);
     console.log('CLEAN OK');
 }
 async function prepare(path) {
-    execSync(`node ./console/clean ${path}`, { stdio: 'inherit' });
+    await clean(path);
     execSync('tsc', { stdio: 'inherit' });
     execSync(`git add ${path}`, { stdio: 'inherit' });
     console.log('PREPARE OK');
