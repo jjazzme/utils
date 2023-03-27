@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import {execSync} from "child_process";
+import {readdir} from "fs/promises";
 
 const _args = process.argv;
 _args.splice(0, 2);
@@ -67,11 +68,25 @@ async function help() {
 }
 
 async function repack() {
-    execSync(`node ./console/repack`, { stdio: 'inherit' });
+    execSync(`rm -rf ./node_modules`, { stdio: 'inherit' });
+    execSync(`rm -rf ./package-lock.json`, { stdio: 'inherit' });
+    execSync(`npm install`, { stdio: 'inherit' });
+    console.log('REPACK OK');
 }
 async function clean(path) {
-    execSync(`node ./console/clean ${path}`, { stdio: 'inherit' });
+    execSync(`rm -rf ${path}/*.js`, { stdio: 'inherit' });
+    execSync(`rm -rf ${path}/*.d.ts`, { stdio: 'inherit' });
+
+    const dirents =( await readdir(path, { withFileTypes: true }));
+    for (let dirent of dirents.filter(dirent => dirent.isDirectory())) {
+        const _root = `${path}/${dirent.name}`;
+        await clean(_root);
+    }
+    console.log('CLEAN OK');
 }
 async function prepare(path) {
-    execSync(`node ./console/prepare ${path}`, { stdio: 'inherit' });
+    execSync(`node ./console/clean ${path}`, { stdio: 'inherit' });
+    execSync('tsc', { stdio: 'inherit' });
+    execSync(`git add ${path}`, { stdio: 'inherit' });
+    console.log('PREPARE OK');
 }
