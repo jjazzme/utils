@@ -1,9 +1,36 @@
+import {customAlphabet} from "nanoid";
+import {AbstractBaseObject} from "./abstractBase.js"
+import {execSync} from "child_process";
+import {readdir} from "fs/promises";
+
+const surid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 21)
+type TDynamicInstance = {
+    [key: string]: {
+        Constructor: InstanceType<any>,
+        tags: string[]
+    }
+}
 class Utils {
 
     constructor() {}
 
     test(source: number) {
         return source * 2;
+    }
+
+    async dipCleanDir(path: string, masks: string[]) {
+        for (const mask of masks) {
+            execSync(`rm -rf ${path}/${mask}`, { stdio: 'inherit' });
+        };
+        const dirs =( await readdir(path, { withFileTypes: true })).filter(dirent => dirent.isDirectory());
+        for (let dirent of dirs) {
+            const _root = `${path}/${dirent.name}`;
+            await this.dipCleanDir(_root, masks);
+        }
+    }
+
+    get generateId(): string {
+        return surid();
     }
 
     sleep(ms: number) {
@@ -63,16 +90,13 @@ class Utils {
         }
         return target;
     }
+
+    dynamicInstance<T>(instanceName: string, instances: TDynamicInstance, ...args: any[]): T {
+        return new instances[instanceName].Constructor(...args);
+    }
 }
 
 const utils = new Utils();
-
-type TDynamicInstance = {
-    [key: string]: {
-        Constructor: InstanceType<any>,
-        tags: string[]
-    }
-}
 
 class DynamicInstance {
     constructor (instanceName: string, instances: TDynamicInstance, ...args: any[]) {
@@ -80,10 +104,13 @@ class DynamicInstance {
     }
 }
 
+
+
 export {
     utils,
     TDynamicInstance,
-    DynamicInstance
+    DynamicInstance,
+    AbstractBaseObject
 }
 
 

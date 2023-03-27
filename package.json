@@ -1,23 +1,25 @@
 {
   "name": "@jjazzme/utils",
-  "version": "0.2.1",
+  "bin": {
+    "jj-utils": "./console/jj-utils.js"
+  },
+  "version": "0.4.0",
   "description": "Old school utils",
   "engines": {
     "node": ">=14.16"
   },
   "scripts": {
-    "clean": "rimraf ./dist/src/*.js ./dist/src/*.d.ts",
-    "prepare": "rimraf ./dist/src/*.js ./dist/src/*.d.ts && tsc",
+    "clean": "node ./console/jj-utils -clean ./dist/src",
+    "prepare": "node ./console/jj-utils -prepare ./dist/src",
+    "repack": "node ./console/jj-utils -repack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
-  "exports": {
-    ".": {
-      "default": "./dist/src/index.js",
-      "types": "./dist/src/index.d.ts"
-    }
-  },
-  "files": ["./dist/src/*.js", "./dist/src/*.d.ts"],
+  "exports": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jjazzme/utils.git"
@@ -40,5 +42,8 @@
   },
   "trash": {
     "main": "./dist/src/index.js"
+  },
+  "dependencies": {
+    "nanoid": "^4.0.1"
   }
 }
