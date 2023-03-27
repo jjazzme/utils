@@ -1,5 +1,5 @@
 import { customAlphabet } from "nanoid";
-import { AbstractBaseObject } from "./abstractBase.js";
+import { JJBaseObject, JJEventEmitter } from "./baseObject.js";
 import { execSync } from "child_process";
 import { readdir } from "fs/promises";
 const surid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 21);
@@ -83,4 +83,4 @@ class DynamicInstance {
         return new instances[instanceName].Constructor(...args);
     }
 }
-export { utils, DynamicInstance, AbstractBaseObject };
+export { utils, DynamicInstance, JJBaseObject, JJEventEmitter, };
