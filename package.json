@@ -4,7 +4,6 @@
     "jj-utils": "./console/jj-utils.js"
   },
   "version": "0.5.2",
-
   "description": "Old school utils",
   "engines": {
     "node": ">=14.16"
