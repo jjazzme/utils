@@ -25,15 +25,19 @@ const commandDict = {
     '-package': {
         execute: packagejson,
         count: 1,
-        help: `Use "/package-source.json" file && "dev" | "prod" arg for generate package.json with local/outer dependencies: 
-  "difDependencies": {
-    "prod": {
-      "package": "ns/package#last" <--- github
-    },
-    "dev": {
-      "package": "file:../package" <--- local
+        help: `Use "/package-dif.json" file && "dev" | "prod" arg for generate package.json with local/outer dependencies: 
+    {
+      "prod": {
+        "dependencies": {
+          "@jjazzme/utils": "jjazzme/utils#last"
+        }
+      },
+      "dev": {
+        "dependencies": {
+          "@jjazzme/utils": "file:../utils"
+        }
+      }
     }
-  }
 `
     },
     '-help': {
@@ -75,19 +79,12 @@ async function processor(args) {
 }
 
 async function packagejson(type) {
-    const target = JSON.parse(fs.readFileSync(`${process.cwd()}/package-source.json`, 'utf8'));
+    const sourceDif = JSON.parse(fs.readFileSync(`${process.cwd()}/package-dif.json`, 'utf8'))[type];
+    const source = JSON.parse(fs.readFileSync(`${process.cwd()}/package.json`, 'utf8'));
     if (!["dev", "prod"].includes(type)) throw Error(`ERROR: ${commandDict['-package'].help}`);
-    let source = type === "dev" ? target.difDependencies.dev : target.difDependencies.prod;
-    if (!source) {
-        console.log(`No path /difDependencies/${type} in /package-source.json`)
-        return;
-    }
-    if (!target.dependencies) target.dependencies = {};
-    for (const [k,v] of Object.entries(target.difDependencies[type])) {
-        target.dependencies[k] = v;
-    }
-    delete target.difDependencies;
+    const target = deepMerge(source, sourceDif);
     fs.writeFileSync(`${process.cwd()}/package.json`, JSON.stringify(target, null, 4))
+
     console.log(`CREATE package.json FROM ${type} SOURCE`);
 }
 
@@ -123,4 +120,22 @@ async function prepare(path) {
     execSync('tsc', { stdio: 'inherit' });
     execSync(`git add ${path}`, { stdio: 'inherit' });
     console.log('PREPARE OK');
+}
+
+
+function deepMerge(targetObject = {}, sourceObject = {}) {
+    const copyTargetObject = JSON.parse(JSON.stringify(targetObject));
+    const copySourceObject = JSON.parse(JSON.stringify(sourceObject));
+    Object.keys(copySourceObject).forEach((key) => {
+        if (typeof copySourceObject[key] === "object" && !Array.isArray(copySourceObject[key])) {
+            copyTargetObject[key] = deepMerge(
+                copyTargetObject[key],
+                copySourceObject[key]
+            );
+        } else {
+            copyTargetObject[key] = copySourceObject[key];
+        }
+    });
+
+    return copyTargetObject;
 }
