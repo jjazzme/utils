@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-
 import {execSync} from "child_process";
 import {readdir} from "fs/promises";
+import fs from "fs";
 
 const _args = process.argv;
 _args.splice(0, 2);
@@ -21,6 +21,20 @@ const commandDict = {
         execute: prepare,
         count: 1,
         help: '-clean + tsc'
+    },
+    '-package': {
+        execute: packagejson,
+        count: 1,
+        help: `Use "/package-source.json" file && "dev" | "prod" arg for generate package.json with local/outer dependencies: 
+  "difDependencies": {
+    "prod": {
+      "package": "ns/package#last" <--- github
+    },
+    "dev": {
+      "package": "file:../package" <--- local
+    }
+  }
+`
     },
     '-help': {
         execute: help,
@@ -58,6 +72,23 @@ async function processor(args) {
     }
 
     return 'success';
+}
+
+async function packagejson(type) {
+    const target = JSON.parse(fs.readFileSync(`${process.cwd()}/package-source.json`, 'utf8'));
+    if (!["dev", "prod"].includes(type)) throw Error(`ERROR: ${commandDict['-package'].help}`);
+    let source = type === "dev" ? target.difDependencies.dev : target.difDependencies.prod;
+    if (!source) {
+        console.log(`No path /difDependencies/${type} in /package-source.json`)
+        return;
+    }
+    if (!target.dependencies) target.dependencies = {};
+    for (const [k,v] of Object.entries(target.difDependencies[type])) {
+        target.dependencies[k] = v;
+    }
+    delete target.difDependencies;
+    fs.writeFileSync(`${process.cwd()}/package.json`, JSON.stringify(target, null, 4))
+    console.log(`CREATE package.json FROM ${type} SOURCE`);
 }
 
 async function help() {

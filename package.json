@@ -3,7 +3,7 @@
   "bin": {
     "jj-utils": "./console/jj-utils.js"
   },
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Old school utils",
   "engines": {
     "node": ">=14.16"
@@ -12,6 +12,8 @@
     "clean": "node ./console/jj-utils -clean ./dist/src",
     "prepare": "node ./console/jj-utils -prepare ./dist/src",
     "repack": "node ./console/jj-utils -repack",
+    "x-repack": "rm -rf ./node_modules && rm -rf ./package-lock.json && npm install",
+
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
@@ -37,7 +39,6 @@
   "homepage": "https://github.com/jjazzme/utils#readme",
   "devDependencies": {
     "@types/node": "^18.15.3",
-    "rimraf": "^4.4.0",
     "typescript": "^4.9.5"
   },
   "trash": {
