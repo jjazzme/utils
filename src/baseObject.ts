@@ -2,9 +2,9 @@ import {utils} from "./index.js";
 import EventEmitter from "events";
 
 type TJJEventDataPacket = {
-    data: any | any[];
+    data: any;
     hint?: any;
-    args?: any[]
+    args?: any;
 }
 class JJEventEmitter {
     #events: {
