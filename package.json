@@ -3,13 +3,15 @@
   "bin": {
     "jj-utils": "./console/jj-utils.js"
   },
-  "version": "0.5.5",
+  "version": "0.6.1",
   "description": "Old school utils",
   "engines": {
     "node": ">=14.16"
   },
   "scripts": {
     "clean": "node ./console/jj-utils -clean ./dist/src",
+    "source-map-on": "node ./console/jj-utils -sourcemap add",
+    "source-map-off": "node ./console/jj-utils -sourcemap remove",
     "prepare": "node ./console/jj-utils -prepare ./dist/src",
     "repack": "node ./console/jj-utils -repack",
     "x-repack": "rm -rf ./node_modules && rm -rf ./package-lock.json && npm install",

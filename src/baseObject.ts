@@ -14,6 +14,7 @@ class JJEventEmitter {
     #onChange?: (pack: TJJEventDataPacket) => any;
     #onDestroy?: (pack: TJJEventDataPacket) => any;
     #onError?: (pack: TJJEventDataPacket) => any;
+    #onLog?: (pack: TJJEventDataPacket) => any;
 
     constructor() {
         this.#events = [];
@@ -33,6 +34,7 @@ class JJEventEmitter {
         const removed = this.#events.splice(ind, 1);
         return removed[0];
     }
+
     onChange(callback: (pack: TJJEventDataPacket) => any) {
         this.#onChange = callback;
     }
@@ -45,6 +47,7 @@ class JJEventEmitter {
     emitChange(pack: TJJEventDataPacket){
         return this.#onChange ? this.#onChange(pack) : undefined;
     }
+
     onDestroy(callback: (pack: TJJEventDataPacket) => any) {
         this.#onDestroy = callback;
     }
@@ -57,6 +60,7 @@ class JJEventEmitter {
     emitDestroy(pack: TJJEventDataPacket){
         return this.#onDestroy ? this.#onDestroy(pack) : undefined;
     }
+
     onError(callback: (pack: TJJEventDataPacket) => any) {
         this.#onError = callback;
     }
@@ -68,6 +72,13 @@ class JJEventEmitter {
     }
     emitError(pack: TJJEventDataPacket){
         return this.#onError ? this.#onError(pack) : undefined;
+    }
+
+    onLog(callback: (pack: TJJEventDataPacket) => any) {
+        this.#onLog = callback;
+    }
+    emitLog(pack: TJJEventDataPacket){
+        return this.#onLog ? this.#onLog(pack) : undefined;
     }
 }
 

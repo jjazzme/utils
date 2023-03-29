@@ -2,6 +2,7 @@
 import {execSync} from "child_process";
 import {readdir} from "fs/promises";
 import fs from "fs";
+import {throws} from "assert";
 
 const _args = process.argv;
 _args.splice(0, 2);
@@ -21,6 +22,11 @@ const commandDict = {
         execute: prepare,
         count: 1,
         help: '-clean + tsc'
+    },
+    '-sourcemap': {
+        execute: sourcemap,
+        count: 1,
+        help: 'add|remove sourceMap in tsconfig.json (parameter "add" or "remove")'
     },
     '-package': {
         execute: packagejson,
@@ -83,7 +89,7 @@ async function packagejson(type) {
     const source = JSON.parse(fs.readFileSync(`${process.cwd()}/package.json`, 'utf8'));
     if (!["dev", "prod"].includes(type)) throw Error(`ERROR: ${commandDict['-package'].help}`);
     const target = deepMerge(source, sourceDif);
-    fs.writeFileSync(`${process.cwd()}/package.json`, JSON.stringify(target, null, 4))
+    fs.writeFileSync(`${process.cwd()}/package.json`, JSON.stringify(target, null, 4));
 
     console.log(`CREATE package.json FROM ${type} SOURCE`);
 }
@@ -104,6 +110,7 @@ async function repack() {
 async function clean(_path) {
     const treeRider = async (path) => {
         execSync(`rm -rf ${path}/*.js`, { stdio: 'inherit' });
+        execSync(`rm -rf ${path}/*.js.map`, { stdio: 'inherit' });
         execSync(`rm -rf ${path}/*.d.ts`, { stdio: 'inherit' });
 
         const dirents =( await readdir(path, { withFileTypes: true }));
@@ -120,6 +127,14 @@ async function prepare(path) {
     execSync('tsc', { stdio: 'inherit' });
     execSync(`git add ${path}`, { stdio: 'inherit' });
     console.log('PREPARE OK');
+}
+async function sourcemap(flag) {
+    if (!['add', 'remove'].includes(flag)) throw Error(`ERROR: bad parameter "${flag}". ${commandDict["-sourcemap"].help}`);
+    const source = JSON.parse(fs.readFileSync(`${process.cwd()}/tsconfig.json`, 'utf8'));
+    if (!source?.compilerOptions) throw Error( 'ERROR: sourcemap => NO compilerOptions');
+    source.compilerOptions.sourceMap = flag === 'add';
+    fs.writeFileSync(`${process.cwd()}/tsconfig.json`, JSON.stringify(source, null, 4));
+    console.log(`SOURCEMAP ${flag}`)
 }
 
 
