@@ -1,3 +1,8 @@
+type TJJEventDataPacket = {
+    data: any | any[];
+    hint?: any;
+    args?: any[];
+};
 declare class JJEventEmitter {
     #private;
     constructor();
@@ -7,12 +12,12 @@ declare class JJEventEmitter {
         eventName: string;
         callback: (...args: any[]) => any;
     } | false;
-    onChange(callback: (...args: any[]) => any): void;
-    emitOnChange(...args: any[]): any;
-    onDestroy(callback: (...args: any[]) => any): void;
-    emitOnDestroy(...args: any[]): any;
-    onError(callback: (...args: any[]) => any): void;
-    emitOnError(...args: any[]): any;
+    onChange(callback: (pack: TJJEventDataPacket) => any): void;
+    emitOnChange(pack: TJJEventDataPacket): any;
+    onDestroy(callback: (pack: TJJEventDataPacket) => any): void;
+    emitOnDestroy(pack: TJJEventDataPacket): any;
+    onError(callback: (pack: TJJEventDataPacket) => any): void;
+    emitOnError(pack: TJJEventDataPacket): any;
 }
 declare class JJBaseObject extends JJEventEmitter {
     id: string | number;
@@ -23,4 +28,4 @@ declare class JJBaseObject extends JJEventEmitter {
     get createdAsDate(): Date;
     get updatedAsDate(): Date | undefined;
 }
-export { JJBaseObject, JJEventEmitter };
+export { JJBaseObject, JJEventEmitter, TJJEventDataPacket };

@@ -26,20 +26,20 @@ class JJEventEmitter {
     onChange(callback) {
         this.#onChange = callback;
     }
-    emitOnChange(...args) {
-        return this.#onChange ? this.#onChange(...args) : undefined;
+    emitOnChange(pack) {
+        return this.#onChange ? this.#onChange(pack) : undefined;
     }
     onDestroy(callback) {
         this.#onDestroy = callback;
     }
-    emitOnDestroy(...args) {
-        return this.#onDestroy ? this.#onDestroy(...args) : undefined;
+    emitOnDestroy(pack) {
+        return this.#onDestroy ? this.#onDestroy(pack) : undefined;
     }
     onError(callback) {
         this.#onError = callback;
     }
-    emitOnError(...args) {
-        return this.#onError ? this.#onError(...args) : undefined;
+    emitOnError(pack) {
+        return this.#onError ? this.#onError(pack) : undefined;
     }
 }
 class JJBaseObject extends JJEventEmitter {

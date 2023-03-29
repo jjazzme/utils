@@ -1,14 +1,19 @@
 import {utils} from "./index.js";
 import EventEmitter from "events";
 
+type TJJEventDataPacket = {
+    data: any | any[];
+    hint?: any;
+    args?: any[]
+}
 class JJEventEmitter {
     #events: {
         eventName: string,
         callback: (...args: any[]) => any
     }[];
-    #onChange?: (...args: any[]) => any;
-    #onDestroy?: (...args: any[]) => any;
-    #onError?: (...args: any[]) => any;
+    #onChange?: (pack: TJJEventDataPacket) => any;
+    #onDestroy?: (pack: TJJEventDataPacket) => any;
+    #onError?: (pack: TJJEventDataPacket) => any;
 
     constructor() {
         this.#events = [];
@@ -28,23 +33,23 @@ class JJEventEmitter {
         const removed = this.#events.splice(ind, 1);
         return removed[0];
     }
-    onChange(callback: (...args: any[]) => any) {
+    onChange(callback: (pack: TJJEventDataPacket) => any) {
         this.#onChange = callback;
     }
-    emitOnChange(...args: any[]){
-        return this.#onChange ? this.#onChange(...args) : undefined;
+    emitOnChange(pack: TJJEventDataPacket){
+        return this.#onChange ? this.#onChange(pack) : undefined;
     }
-    onDestroy(callback: (...args: any[]) => any) {
+    onDestroy(callback: (pack: TJJEventDataPacket) => any) {
         this.#onDestroy = callback;
     }
-    emitOnDestroy(...args: any[]){
-        return this.#onDestroy ? this.#onDestroy(...args) : undefined;
+    emitOnDestroy(pack: TJJEventDataPacket){
+        return this.#onDestroy ? this.#onDestroy(pack) : undefined;
     }
-    onError(callback: (...args: any[]) => any) {
+    onError(callback: (pack: TJJEventDataPacket) => any) {
         this.#onError = callback;
     }
-    emitOnError(...args: any[]){
-        return this.#onError ? this.#onError(...args) : undefined;
+    emitOnError(pack: TJJEventDataPacket){
+        return this.#onError ? this.#onError(pack) : undefined;
     }
 }
 
@@ -74,5 +79,6 @@ class JJBaseObject extends JJEventEmitter{
 
 export {
     JJBaseObject,
-    JJEventEmitter
+    JJEventEmitter,
+    TJJEventDataPacket
 }
