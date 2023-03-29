@@ -3,7 +3,7 @@
   "bin": {
     "jj-utils": "./console/jj-utils.js"
   },
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Old school utils",
   "engines": {
     "node": ">=14.16"
