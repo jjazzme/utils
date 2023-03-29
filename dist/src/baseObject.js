@@ -26,19 +26,37 @@ class JJEventEmitter {
     onChange(callback) {
         this.#onChange = callback;
     }
+    /**
+     * @deprecated The method should not be used. Use emitChange
+     */
     emitOnChange(pack) {
+        return this.#onChange ? this.#onChange(pack) : undefined;
+    }
+    emitChange(pack) {
         return this.#onChange ? this.#onChange(pack) : undefined;
     }
     onDestroy(callback) {
         this.#onDestroy = callback;
     }
+    /**
+     * @deprecated The method should not be used. Use emitDestroy
+     */
     emitOnDestroy(pack) {
+        return this.#onDestroy ? this.#onDestroy(pack) : undefined;
+    }
+    emitDestroy(pack) {
         return this.#onDestroy ? this.#onDestroy(pack) : undefined;
     }
     onError(callback) {
         this.#onError = callback;
     }
+    /**
+     * @deprecated The method should not be used. Use emitError
+     */
     emitOnError(pack) {
+        return this.#onError ? this.#onError(pack) : undefined;
+    }
+    emitError(pack) {
         return this.#onError ? this.#onError(pack) : undefined;
     }
 }

@@ -36,19 +36,37 @@ class JJEventEmitter {
     onChange(callback: (pack: TJJEventDataPacket) => any) {
         this.#onChange = callback;
     }
+    /**
+     * @deprecated The method should not be used. Use emitChange
+     */
     emitOnChange(pack: TJJEventDataPacket){
+        return this.#onChange ? this.#onChange(pack) : undefined;
+    }
+    emitChange(pack: TJJEventDataPacket){
         return this.#onChange ? this.#onChange(pack) : undefined;
     }
     onDestroy(callback: (pack: TJJEventDataPacket) => any) {
         this.#onDestroy = callback;
     }
+    /**
+     * @deprecated The method should not be used. Use emitDestroy
+     */
     emitOnDestroy(pack: TJJEventDataPacket){
+        return this.#onDestroy ? this.#onDestroy(pack) : undefined;
+    }
+    emitDestroy(pack: TJJEventDataPacket){
         return this.#onDestroy ? this.#onDestroy(pack) : undefined;
     }
     onError(callback: (pack: TJJEventDataPacket) => any) {
         this.#onError = callback;
     }
+    /**
+     * @deprecated The method should not be used. Use emitError
+     */
     emitOnError(pack: TJJEventDataPacket){
+        return this.#onError ? this.#onError(pack) : undefined;
+    }
+    emitError(pack: TJJEventDataPacket){
         return this.#onError ? this.#onError(pack) : undefined;
     }
 }

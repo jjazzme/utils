@@ -13,11 +13,23 @@ declare class JJEventEmitter {
         callback: (...args: any[]) => any;
     } | false;
     onChange(callback: (pack: TJJEventDataPacket) => any): void;
+    /**
+     * @deprecated The method should not be used. Use emitChange
+     */
     emitOnChange(pack: TJJEventDataPacket): any;
+    emitChange(pack: TJJEventDataPacket): any;
     onDestroy(callback: (pack: TJJEventDataPacket) => any): void;
+    /**
+     * @deprecated The method should not be used. Use emitDestroy
+     */
     emitOnDestroy(pack: TJJEventDataPacket): any;
+    emitDestroy(pack: TJJEventDataPacket): any;
     onError(callback: (pack: TJJEventDataPacket) => any): void;
+    /**
+     * @deprecated The method should not be used. Use emitError
+     */
     emitOnError(pack: TJJEventDataPacket): any;
+    emitError(pack: TJJEventDataPacket): any;
 }
 declare class JJBaseObject extends JJEventEmitter {
     id: string | number;
