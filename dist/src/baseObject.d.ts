@@ -1,7 +1,7 @@
 type TJJEventDataPacket = {
-    data: any | any[];
+    data: any;
     hint?: any;
-    args?: any[];
+    args?: any;
 };
 declare class JJEventEmitter {
     #private;
