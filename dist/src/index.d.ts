@@ -1,4 +1,4 @@
-import { JJBaseObject, JJEventEmitter } from "./baseObject.js";
+import { JJBaseObject, JJEventEmitter, TJJEventDataPacket } from "./baseObject.js";
 type TDynamicInstance = {
     [key: string]: {
         Constructor: InstanceType<any>;
@@ -24,4 +24,4 @@ declare const utils: Utils;
 declare class DynamicInstance {
     constructor(instanceName: string, instances: TDynamicInstance, ...args: any[]);
 }
-export { utils, TDynamicInstance, DynamicInstance, JJBaseObject, JJEventEmitter, };
+export { utils, TDynamicInstance, DynamicInstance, JJBaseObject, JJEventEmitter, TJJEventDataPacket };

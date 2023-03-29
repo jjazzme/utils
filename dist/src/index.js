@@ -83,4 +83,4 @@ class DynamicInstance {
         return new instances[instanceName].Constructor(...args);
     }
 }
-export { utils, DynamicInstance, JJBaseObject, JJEventEmitter, };
+export { utils, DynamicInstance, JJBaseObject, JJEventEmitter };

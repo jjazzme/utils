@@ -1,5 +1,5 @@
 import {customAlphabet} from "nanoid";
-import {JJBaseObject, JJEventEmitter} from "./baseObject.js"
+import {JJBaseObject, JJEventEmitter, TJJEventDataPacket} from "./baseObject.js"
 import {execSync} from "child_process";
 import {readdir} from "fs/promises";
 
@@ -112,5 +112,6 @@ export {
     DynamicInstance,
     JJBaseObject,
     JJEventEmitter,
+    TJJEventDataPacket
 }
 
