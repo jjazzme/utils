@@ -14,6 +14,10 @@ class Utils {
 
     constructor() {}
 
+    cloneObject(obj: Object) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+
     test(source: number) {
         return source * 2;
     }
@@ -46,6 +50,7 @@ class Utils {
         });
     }
 
+    //???
     instanceClone<T>(instance: T): T {
         // @ts-ignore
         const copy = new (instance.constructor as { new (): T })();

@@ -5,6 +5,9 @@ import { readdir } from "fs/promises";
 const surid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 21);
 class Utils {
     constructor() { }
+    cloneObject(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    }
     test(source) {
         return source * 2;
     }
@@ -33,6 +36,7 @@ class Utils {
             resolve();
         });
     }
+    //???
     instanceClone(instance) {
         // @ts-ignore
         const copy = new instance.constructor();
