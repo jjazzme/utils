@@ -73,8 +73,8 @@ class JJBaseObject extends JJEventEmitter {
     updated;
     constructor(source) {
         super();
-        this.id = source.id ?? utils.generateId;
-        this.created = source.created ?? Date.now();
+        this.id = source?.id ?? utils.generateId;
+        this.created = source?.created ?? Date.now();
     }
     toJson(source) {
         return utils.toJson(source);
