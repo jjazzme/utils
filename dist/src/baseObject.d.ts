@@ -32,6 +32,8 @@ declare class JJEventEmitter {
     emitError(pack: TJJEventDataPacket): any;
     onLog(callback: (pack: TJJEventDataPacket) => any): void;
     emitLog(pack: TJJEventDataPacket): any;
+    onInit(callback: (pack?: TJJEventDataPacket) => any): void;
+    emitInit(pack?: TJJEventDataPacket): any;
 }
 declare class JJBaseObject extends JJEventEmitter {
     id: string | number;

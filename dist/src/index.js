@@ -2,9 +2,18 @@ import { customAlphabet } from "nanoid";
 import { JJBaseObject, JJEventEmitter } from "./baseObject.js";
 import { execSync } from "child_process";
 import { readdir } from "fs/promises";
+import fs from "fs";
 const surid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 21);
 class Utils {
     constructor() { }
+    readJsonFileSync(path) {
+        try {
+            return JSON.parse(fs.readFileSync(path, 'utf8'));
+        }
+        catch (e) {
+            return undefined;
+        }
+    }
     cloneObject(obj) {
         return JSON.parse(JSON.stringify(obj));
     }
@@ -15,7 +24,6 @@ class Utils {
         for (const mask of masks) {
             execSync(`rm -rf ${path}/${mask}`, { stdio: 'inherit' });
         }
-        ;
         const dirs = (await readdir(path, { withFileTypes: true })).filter(dirent => dirent.isDirectory());
         for (let dirent of dirs) {
             const _root = `${path}/${dirent.name}`;

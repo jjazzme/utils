@@ -5,6 +5,7 @@ class JJEventEmitter {
     #onDestroy;
     #onError;
     #onLog;
+    #onInit;
     constructor() {
         this.#events = [];
     }
@@ -65,6 +66,12 @@ class JJEventEmitter {
     }
     emitLog(pack) {
         return this.#onLog ? this.#onLog(pack) : undefined;
+    }
+    onInit(callback) {
+        this.#onInit = callback;
+    }
+    emitInit(pack) {
+        return this.#onInit ? this.#onInit(pack) : undefined;
     }
 }
 class JJBaseObject extends JJEventEmitter {

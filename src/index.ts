@@ -2,6 +2,7 @@ import {customAlphabet} from "nanoid";
 import {JJBaseObject, JJEventEmitter, TJJEventDataPacket} from "./baseObject.js"
 import {execSync} from "child_process";
 import {readdir} from "fs/promises";
+import fs from "fs";
 
 const surid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 21)
 type TDynamicInstance = {
@@ -14,33 +15,35 @@ class Utils {
 
     constructor() {}
 
+    readJsonFileSync(path: string) {
+        try {
+            return JSON.parse(fs.readFileSync(path, 'utf8'));
+        } catch (e) {
+            return undefined
+        }
+    }
     cloneObject(obj: Object) {
         return JSON.parse(JSON.stringify(obj));
     }
-
     test(source: number) {
         return source * 2;
     }
-
     async dipCleanDir(path: string, masks: string[]) {
         for (const mask of masks) {
             execSync(`rm -rf ${path}/${mask}`, { stdio: 'inherit' });
-        };
+        }
         const dirs =( await readdir(path, { withFileTypes: true })).filter(dirent => dirent.isDirectory());
         for (let dirent of dirs) {
             const _root = `${path}/${dirent.name}`;
             await this.dipCleanDir(_root, masks);
         }
     }
-
     get generateId(): string {
         return surid();
     }
-
     sleep(ms: number) {
         return new Promise( resolve => setTimeout(resolve, ms) );
     }
-
     wait(condition: () => boolean) {
         return new Promise<void>( async (resolve) => {
             while (!condition()) {
@@ -49,7 +52,6 @@ class Utils {
             resolve();
         });
     }
-
     //???
     instanceClone<T>(instance: T): T {
         // @ts-ignore
@@ -58,11 +60,9 @@ class Utils {
         Object.assign(copy, instance);
         return copy;
     }
-
     instanceCreate<T>(type: { new(): T ;} ): T {
         return new type();
     }
-
     differenceToJson<T extends Record<string, any>>(newValue: T, oldValue: T): Partial<T> {
         const n = this.toJson(newValue);
         const o = this.toJson(oldValue);
@@ -74,7 +74,6 @@ class Utils {
 
         return result;
     }
-
     toJson<T extends Record<string, any>>(source: T): Partial<T> {
         const target: Partial<T> = {};
         for (const [key, value] of Object.entries(source)) {
@@ -95,7 +94,6 @@ class Utils {
         }
         return target;
     }
-
     dynamicInstance<T>(instanceName: string, instances: TDynamicInstance, ...args: any[]): T {
         return new instances[instanceName].Constructor(...args);
     }

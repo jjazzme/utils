@@ -7,6 +7,7 @@ type TDynamicInstance = {
 };
 declare class Utils {
     constructor();
+    readJsonFileSync(path: string): any;
     cloneObject(obj: Object): any;
     test(source: number): number;
     dipCleanDir(path: string, masks: string[]): Promise<void>;

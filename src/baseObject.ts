@@ -15,6 +15,7 @@ class JJEventEmitter {
     #onDestroy?: (pack: TJJEventDataPacket) => any;
     #onError?: (pack: TJJEventDataPacket) => any;
     #onLog?: (pack: TJJEventDataPacket) => any;
+    #onInit?: (pack?: TJJEventDataPacket) => any;
 
     constructor() {
         this.#events = [];
@@ -79,6 +80,13 @@ class JJEventEmitter {
     }
     emitLog(pack: TJJEventDataPacket){
         return this.#onLog ? this.#onLog(pack) : undefined;
+    }
+
+    onInit(callback: (pack?: TJJEventDataPacket) => any) {
+        this.#onInit = callback;
+    }
+    emitInit(pack?: TJJEventDataPacket){
+        return this.#onInit ? this.#onInit(pack) : undefined;
     }
 }
 
