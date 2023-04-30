@@ -2,7 +2,8 @@
 import {execSync} from "child_process";
 import {readdir} from "fs/promises";
 import fs from "fs";
-import {throws} from "assert";
+import {customAlphabet} from "nanoid";
+const surid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 21)
 
 const _args = process.argv;
 _args.splice(0, 2);
@@ -46,6 +47,16 @@ const commandDict = {
     }
 `
     },
+    '-postprocess': {
+        execute: postprocess,
+        count: 1,
+        help: 'run ./postprocess.js => postprocess("prod" | "dev")'
+    },
+    '-sid': {
+        execute: sid,
+        count: 0,
+        help: 'sid (nano-alphabet) generator'
+    },
     '-help': {
         execute: help,
         count: 0,
@@ -82,6 +93,16 @@ async function processor(args) {
     }
 
     return 'success';
+}
+
+async function postprocess(type) {
+    try {
+        const {postprocess} = await import(`${process.cwd()}/postprocess.js`);
+        await postprocess(type);
+        console.log('POSTPROCESS SUCCESS');
+    } catch (e) {
+        console.log('POSTPROCESS ERROR: ', e);
+    }
 }
 
 async function packagejson(type) {
@@ -135,6 +156,9 @@ async function sourcemap(flag) {
     source.compilerOptions.sourceMap = flag === 'add';
     fs.writeFileSync(`${process.cwd()}/tsconfig.json`, JSON.stringify(source, null, 4));
     console.log(`SOURCEMAP ${flag}`)
+}
+async function sid() {
+    console.log(surid());
 }
 
 
