@@ -1,5 +1,6 @@
 import { customAlphabet } from "nanoid";
 import { JJBaseObject, JJEventEmitter } from "./baseObject.js";
+import { JJAbstractExtendedObject, JJAbstractStoreConnector } from "./extendedObject.js";
 import { execSync } from "child_process";
 import { readdir } from "fs/promises";
 import fs from "fs";
@@ -52,8 +53,14 @@ class Utils {
         Object.assign(copy, instance);
         return copy;
     }
+    /**
+     * @deprecated The method should not be used. Use createClass
+     */
     instanceCreate(type) {
         return new type();
+    }
+    createClass(constructor, ...args) {
+        return new constructor(...args);
     }
     differenceToJson(newValue, oldValue) {
         const n = this.toJson(newValue);
@@ -95,4 +102,5 @@ class DynamicInstance {
         return new instances[instanceName].Constructor(...args);
     }
 }
-export { utils, DynamicInstance, JJBaseObject, JJEventEmitter };
+export { utils, DynamicInstance, JJBaseObject, JJEventEmitter, JJAbstractExtendedObject, JJAbstractStoreConnector };
+//# sourceMappingURL=index.js.map

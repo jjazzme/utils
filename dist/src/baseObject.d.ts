@@ -35,13 +35,18 @@ declare class JJEventEmitter {
     onInit(callback: (pack?: TJJEventDataPacket) => any): void;
     emitInit(pack?: TJJEventDataPacket): any;
 }
-declare class JJBaseObject extends JJEventEmitter {
+type TJJBaseObject = {
     id: string | number;
     created: number;
     updated?: number;
-    constructor(source?: Partial<JJBaseObject>);
+};
+declare class JJBaseObject extends JJEventEmitter implements TJJBaseObject {
+    id: string | number;
+    created: number;
+    updated?: number;
+    constructor(source?: TJJBaseObject);
     protected toJson(source: any): any | undefined;
-    get createdAsDate(): Date;
+    get createdAsDate(): Date | undefined;
     get updatedAsDate(): Date | undefined;
 }
 export { JJBaseObject, JJEventEmitter, TJJEventDataPacket };

@@ -1,5 +1,6 @@
 import {customAlphabet} from "nanoid";
-import {JJBaseObject, JJEventEmitter, TJJEventDataPacket} from "./baseObject.js"
+import {JJBaseObject, JJEventEmitter, TJJEventDataPacket} from "./baseObject.js";
+import {TJJExtendedObject, JJAbstractExtendedObject, TJJAEOptions, JJAbstractStoreConnector} from "./extendedObject.js"
 import {execSync} from "child_process";
 import {readdir} from "fs/promises";
 import fs from "fs";
@@ -60,8 +61,14 @@ class Utils {
         Object.assign(copy, instance);
         return copy;
     }
+    /**
+     * @deprecated The method should not be used. Use createClass
+     */
     instanceCreate<T>(type: { new(): T ;} ): T {
         return new type();
+    }
+    createClass<T>(constructor: new (...args: any[]) => T, ...args: any): T {
+        return new constructor(...args);
     }
     differenceToJson<T extends Record<string, any>>(newValue: T, oldValue: T): Partial<T> {
         const n = this.toJson(newValue);
@@ -115,6 +122,10 @@ export {
     DynamicInstance,
     JJBaseObject,
     JJEventEmitter,
-    TJJEventDataPacket
+    TJJEventDataPacket,
+    TJJExtendedObject,
+    JJAbstractExtendedObject,
+    TJJAEOptions,
+    JJAbstractStoreConnector
 }
 

@@ -90,28 +90,35 @@ class JJEventEmitter {
     }
 }
 
-class JJBaseObject extends JJEventEmitter{
+type TJJBaseObject = {
+    id: string | number;
+    created: number;
+    updated?: number;
+}
+class JJBaseObject extends JJEventEmitter implements TJJBaseObject{
     id: string | number;
     created: number;
     updated?: number;
 
-    constructor(source?: Partial<JJBaseObject>) {
+    constructor(source?: TJJBaseObject) {
         super();
         this.id = source?.id ?? utils.generateId;
         this.created = source?.created ?? Date.now();
+        if (source?.updated) this.updated = source.updated;
     }
 
     protected toJson(source: any): any | undefined {
         return utils.toJson(source);
     }
 
-    get createdAsDate(): Date {
-        return new Date(this.created);
+    get createdAsDate(): Date | undefined {
+        return this.created ? new Date(this.created) : undefined;
     }
 
     get updatedAsDate(): Date | undefined {
         return this.updated == undefined ? undefined : new Date(this.updated);
     }
+
 }
 
 export {

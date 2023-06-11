@@ -82,15 +82,18 @@ class JJBaseObject extends JJEventEmitter {
         super();
         this.id = source?.id ?? utils.generateId;
         this.created = source?.created ?? Date.now();
+        if (source?.updated)
+            this.updated = source.updated;
     }
     toJson(source) {
         return utils.toJson(source);
     }
     get createdAsDate() {
-        return new Date(this.created);
+        return this.created ? new Date(this.created) : undefined;
     }
     get updatedAsDate() {
         return this.updated == undefined ? undefined : new Date(this.updated);
     }
 }
 export { JJBaseObject, JJEventEmitter };
+//# sourceMappingURL=baseObject.js.map
