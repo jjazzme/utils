@@ -1,5 +1,3 @@
-import { JJBaseObject, JJEventEmitter, TJJEventDataPacket } from "./baseObject.js";
-import { TJJExtendedObject, JJAbstractExtendedObject, TJJAEOptions, JJAbstractStoreConnector } from "./extendedObject.js";
 type TDynamicInstance = {
     [key: string]: {
         Constructor: InstanceType<any>;
@@ -31,4 +29,6 @@ declare const utils: Utils;
 declare class DynamicInstance {
     constructor(instanceName: string, instances: TDynamicInstance, ...args: any[]);
 }
-export { utils, TDynamicInstance, DynamicInstance, JJBaseObject, JJEventEmitter, TJJEventDataPacket, TJJExtendedObject, JJAbstractExtendedObject, TJJAEOptions, JJAbstractStoreConnector };
+export * from "./baseObject.js";
+export * from "./extendedObject.js";
+export { utils, TDynamicInstance, DynamicInstance, };

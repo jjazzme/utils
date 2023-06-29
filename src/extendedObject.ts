@@ -1,11 +1,14 @@
 import {JJEventEmitter} from "./index.js";
 
-type TJJAEOptions<D> = {
+type TJJAEOptions<D, N extends string> = {
     keys?: string[];
-    arrayKeys?: { key: keyof D, constructor: (i: any)=>any}[];
-    singleKeys?: { key: keyof D, constructor: (i: any)=>any}[];
-    connector?: JJAbstractStoreConnector;
+    connector?: JJAbstractStoreConnector<N>;
 };
+
+type TJJTableProperty<N> = {
+    name: N;
+    constructor: (i: TJJExtendedObject<any, any, any>, c: any) => any;
+}
 
 type TJJExtendedObject<D, C, M> = string | {
     id: string;
@@ -18,15 +21,74 @@ type TJJExtendedObject<D, C, M> = string | {
     _meta?: M;
 };
 
-abstract class JJAbstractStoreConnector extends JJEventEmitter{
-    abstract open(): Promise<void>;
-    abstract close(): Promise<void>;
-    abstract expand<D, C, M>(s: string): Promise<JJAbstractExtendedObject<D, C, M>>;
-    abstract save<D, C, M>(s: JJAbstractExtendedObject<D, C, M>): Promise<(Record<string, any>  & { id: string; })[]>;
-    abstract delete(thing: string): Promise<(Record<string, any>  & { id: string; })[]>
+type TAbstractRoles<CT extends Record<string, true>> = {
+    root?: true;
+    administrator?: true;
+    author?: true;
+    moderator?: true;
+    user?: true;
+} & CT;
+
+type TAbstractRolesWeight<CN extends Record<string, number>> = {
+    root: 1000000;
+    administrator: 900000;
+    author: 300000;
+    moderator: 200000;
+    user: 100000;
+} & CN;
+
+abstract class JJAbstractRoles<CT extends Record<string, true>, CN extends Record<string, number>>  {
+    data?: TAbstractRoles<CT>
+    rolePriority: TAbstractRolesWeight<CN>;
+
+    constructor(s?: {data?: TAbstractRoles<CT>, rolePriority?: TAbstractRolesWeight<CN> }) {
+        if (s?.data) this.data = s.data
+        this.rolePriority = s?.rolePriority ?? {
+            root: 1000000,
+            administrator: 900000,
+            author: 300000,
+            moderator: 200000,
+            user: 100000,
+        } as TAbstractRolesWeight<any>;
+    }
+
+    abstract anonymous(): boolean;
 }
 
-abstract class JJAbstractExtendedObject<D, C, M> extends JJEventEmitter{
+abstract class JJAbstractUser<CT extends Record<string, true>, CN extends Record<string, number>> extends JJEventEmitter{
+    roles: JJAbstractRoles<CT, CN>
+    token: string;
+    tokenTTL: number;
+
+    protected constructor(s: Partial<JJAbstractUser<CT, CN>> ) {
+        super();
+    }
+}
+
+type TStoreConnectorACL = {
+    id: string,
+    type: 'thing' | 'query',
+    initialStrategy: 'denyAll' |
+}
+
+abstract class JJAbstractStoreConnector<N extends string> extends JJEventEmitter{
+    tables: Record<N, TJJTableProperty<N>>;
+    token?: string;
+    protected constructor(tables: Record<N, TJJTableProperty<N>>) {
+        super();
+        this.tables = tables;
+    }
+
+    abstract open(): Promise<void>;
+    abstract close(): Promise<void>;
+
+    abstract save<D, C, M, T extends JJAbstractExtendedObject<D, C, M, N> >(s: T, token: string): Promise<T>; //Promise<(Record<string, any>  & { id: string; })[]>;
+    abstract delete<D, C, M, T extends JJAbstractExtendedObject<D, C, M, N> >(thing: string, token: string): Promise<(Record<string, any>  & { id: string; })[]>;
+    abstract get<T>(thing: string, token: string): T;
+    abstract query<T>(query: any, token: string): T;
+}
+
+abstract class JJAbstractExtendedObject<D, C, M, N extends string> extends JJEventEmitter{
     id: string;
     created?: number;
     updated?: number;
@@ -35,11 +97,11 @@ abstract class JJAbstractExtendedObject<D, C, M> extends JJEventEmitter{
     data?: D;
     chaos?: C;
     _meta: M | Partial<M>;
-    _connector?: JJAbstractStoreConnector;
+    _connector?: JJAbstractStoreConnector<N>;
 
-    #options?: TJJAEOptions<D>
+    #options?: TJJAEOptions<D, N>
 
-    protected constructor(s: TJJExtendedObject<D, C, M>, options?: TJJAEOptions<D>) {
+    protected constructor(s: TJJExtendedObject<D, C, M>, tableProperties: Record<N, TJJTableProperty<N>>, options?: TJJAEOptions<D, N>) {
         super();
         if (options) this.#options = options;
         if (options?.connector) this._connector = options.connector;
@@ -60,20 +122,16 @@ abstract class JJAbstractExtendedObject<D, C, M> extends JJEventEmitter{
             }
             this.data = s.data;
             if (this.data) {
-                if (options?.arrayKeys) {
-                    for (const {key, constructor} of options.arrayKeys) {
-                        if (this.data[key]) {
-                            const target = [];
-                            for (const item of this.data[key] as any[]) {
-                                target.push(constructor(item));
-                            }
-                            (this.data[key] as any[]) = target;
-                        }
-                    }
-                }
-                if (options?.singleKeys) {
-                    for (const {key, constructor} of options.singleKeys) {
-                        if (this.data[key]) this.data[key] = constructor(this.data[key]);
+                for (const [key, value] of Object.entries(this.data)) {
+                    if (Array.isArray(value)) {
+                        value.forEach((val, ind) => {
+                            const instance = this.#stringOrObjectToInstance(val, tableProperties, this._connector);
+                            const t = this.data![key as keyof D] as any[];
+                            if (instance) (this.data![key as keyof D] as any[])[ind] = instance;
+                        })
+                    } else {
+                        const instance = this.#stringOrObjectToInstance(value, tableProperties, this._connector);
+                        if (instance) this.data[key as keyof D] = instance;
                     }
                 }
             }
@@ -86,9 +144,38 @@ abstract class JJAbstractExtendedObject<D, C, M> extends JJEventEmitter{
         }
     }
 
+    #stringIsIdOfTable(str: string): N | false {
+        const reg = /^[a-zA-Z_0-9]+:[a-zA-Z_0-9]{9,42}$/gm;
+        const match = reg.exec(str);
+        return match ? match[1] as N : false;
+    }
+    #stringOrObjectToInstance(value: any, tableProperties: Record<N, TJJTableProperty<N>>, connector: JJAbstractStoreConnector<N> | undefined): any {
+        if (!(value && (typeof value === 'string' || value.id))) return false
+        const maybeId = typeof value === 'string' ? value : (value as any).id;
+
+        const name = this.#stringIsIdOfTable(maybeId);
+        if (!name) return false;
+
+        const entry = Object.entries(tableProperties).find(([key, value])=>key===name);
+        if (entry) {
+            const constructor =  entry[1] as (i: TJJExtendedObject<any, any, any>, c: any) => any;
+            return constructor(value, connector);
+        }
+        return false;
+    }
+
     get isRef(): boolean {
         return !this.data
     }
+
+    abstract isDataObject(value: any): boolean;
+    expandData<T extends JJAbstractExtendedObject<D, C, M, N> >(levels: number, level: number = 0, obj?: T | typeof this): void {
+        obj ??= this;
+        for (const [key, value] of Object.entries(obj.data ?? [])){
+            if (key !== 'id' and )
+        }
+    };
+
 
     toJsonExt(source?: Record<string, any> | Array<any>): Record<string, any> | string | Array<any>{
         source ??= this;
@@ -123,5 +210,6 @@ export {
     TJJExtendedObject,
     JJAbstractExtendedObject,
     TJJAEOptions,
-    JJAbstractStoreConnector
+    JJAbstractStoreConnector,
+    TJJTableProperty.
 };

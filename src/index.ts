@@ -114,18 +114,12 @@ class DynamicInstance {
     }
 }
 
-
+export * from "./baseObject.js";
+export * from "./extendedObject.js"
 
 export {
     utils,
     TDynamicInstance,
     DynamicInstance,
-    JJBaseObject,
-    JJEventEmitter,
-    TJJEventDataPacket,
-    TJJExtendedObject,
-    JJAbstractExtendedObject,
-    TJJAEOptions,
-    JJAbstractStoreConnector
 }
 

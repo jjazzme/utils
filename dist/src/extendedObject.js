@@ -1,5 +1,10 @@
 import { JJEventEmitter } from "./index.js";
 class JJAbstractStoreConnector extends JJEventEmitter {
+    tables;
+    constructor(tables) {
+        super();
+        this.tables = tables;
+    }
 }
 class JJAbstractExtendedObject extends JJEventEmitter {
     id;
@@ -12,7 +17,7 @@ class JJAbstractExtendedObject extends JJEventEmitter {
     _meta;
     _connector;
     #options;
-    constructor(s, options) {
+    constructor(s, tableProperties, options) {
         super();
         if (options)
             this.#options = options;
@@ -39,21 +44,19 @@ class JJAbstractExtendedObject extends JJEventEmitter {
             }
             this.data = s.data;
             if (this.data) {
-                if (options?.arrayKeys) {
-                    for (const { key, constructor } of options.arrayKeys) {
-                        if (this.data[key]) {
-                            const target = [];
-                            for (const item of this.data[key]) {
-                                target.push(constructor(item));
-                            }
-                            this.data[key] = target;
-                        }
+                for (const [key, value] of Object.entries(this.data)) {
+                    if (Array.isArray(value)) {
+                        value.forEach((val, ind) => {
+                            const instance = this.#stringOrObjectToInstance(val, tableProperties, this._connector);
+                            const t = this.data[key];
+                            if (instance)
+                                this.data[key][ind] = instance;
+                        });
                     }
-                }
-                if (options?.singleKeys) {
-                    for (const { key, constructor } of options.singleKeys) {
-                        if (this.data[key])
-                            this.data[key] = constructor(this.data[key]);
+                    else {
+                        const instance = this.#stringOrObjectToInstance(value, tableProperties, this._connector);
+                        if (instance)
+                            this.data[key] = instance;
                     }
                 }
             }
@@ -66,6 +69,25 @@ class JJAbstractExtendedObject extends JJEventEmitter {
                 this._meta = {};
             }
         }
+    }
+    #stringIsIdOfTable(str) {
+        const reg = /^[a-zA-Z_0-9]+:[a-zA-Z_0-9]{9,42}$/gm;
+        const match = reg.exec(str);
+        return match ? match[1] : false;
+    }
+    #stringOrObjectToInstance(value, tableProperties, connector) {
+        if (!(value && (typeof value === 'string' || value.id)))
+            return false;
+        const maybeId = typeof value === 'string' ? value : value.id;
+        const name = this.#stringIsIdOfTable(maybeId);
+        if (!name)
+            return false;
+        const entry = Object.entries(tableProperties).find(([key, value]) => key === name);
+        if (entry) {
+            const constructor = entry[1];
+            return constructor(value, connector);
+        }
+        return false;
     }
     get isRef() {
         return !this.data;

@@ -100,7 +100,7 @@ class JJBaseObject extends JJEventEmitter implements TJJBaseObject{
     created: number;
     updated?: number;
 
-    constructor(source?: TJJBaseObject) {
+    constructor(source?: Partial<TJJBaseObject>) {
         super();
         this.id = source?.id ?? utils.generateId;
         this.created = source?.created ?? Date.now();

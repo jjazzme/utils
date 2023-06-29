@@ -1,6 +1,4 @@
 import { customAlphabet } from "nanoid";
-import { JJBaseObject, JJEventEmitter } from "./baseObject.js";
-import { JJAbstractExtendedObject, JJAbstractStoreConnector } from "./extendedObject.js";
 import { execSync } from "child_process";
 import { readdir } from "fs/promises";
 import fs from "fs";
@@ -102,5 +100,7 @@ class DynamicInstance {
         return new instances[instanceName].Constructor(...args);
     }
 }
-export { utils, DynamicInstance, JJBaseObject, JJEventEmitter, JJAbstractExtendedObject, JJAbstractStoreConnector };
+export * from "./baseObject.js";
+export * from "./extendedObject.js";
+export { utils, DynamicInstance, };
 //# sourceMappingURL=index.js.map

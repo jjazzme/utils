@@ -44,7 +44,7 @@ declare class JJBaseObject extends JJEventEmitter implements TJJBaseObject {
     id: string | number;
     created: number;
     updated?: number;
-    constructor(source?: TJJBaseObject);
+    constructor(source?: Partial<TJJBaseObject>);
     protected toJson(source: any): any | undefined;
     get createdAsDate(): Date | undefined;
     get updatedAsDate(): Date | undefined;
