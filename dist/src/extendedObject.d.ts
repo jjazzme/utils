@@ -19,16 +19,16 @@ type TJJExtendedObject<D, C, M> = string | {
 };
 declare abstract class JJAbstractStoreConnector<N extends string> extends JJEventEmitter {
     tables: Record<N, TJJTableProperty<N>>;
+    token?: string;
     protected constructor(tables: Record<N, TJJTableProperty<N>>);
     abstract open(): Promise<void>;
     abstract close(): Promise<void>;
-    abstract expand<D, C, M>(s: string): Promise<JJAbstractExtendedObject<D, C, M, N>>;
-    abstract save<D, C, M>(s: JJAbstractExtendedObject<D, C, M, N>): Promise<(Record<string, any> & {
+    abstract save<D, C, M, T extends JJAbstractExtendedObject<D, C, M, N>>(s: T, token: string): Promise<T>;
+    abstract delete<D, C, M, T extends JJAbstractExtendedObject<D, C, M, N>>(thing: string, token: string): Promise<(Record<string, any> & {
         id: string;
     })[]>;
-    abstract delete(thing: string): Promise<(Record<string, any> & {
-        id: string;
-    })[]>;
+    abstract get<T>(thing: string, token: string): T;
+    abstract query<T>(query: any, token: string): T;
 }
 declare abstract class JJAbstractExtendedObject<D, C, M, N extends string> extends JJEventEmitter {
     #private;

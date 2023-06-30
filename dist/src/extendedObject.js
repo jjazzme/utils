@@ -1,6 +1,22 @@
 import { JJEventEmitter } from "./index.js";
+class JJAbstractRoles {
+    data;
+    rolePriority;
+    constructor(s) {
+        if (s?.data)
+            this.data = s.data;
+        this.rolePriority = s?.rolePriority ?? {
+            root: 1000000,
+            administrator: 900000,
+            author: 300000,
+            moderator: 200000,
+            user: 100000,
+        };
+    }
+}
 class JJAbstractStoreConnector extends JJEventEmitter {
     tables;
+    token;
     constructor(tables) {
         super();
         this.tables = tables;
@@ -92,6 +108,13 @@ class JJAbstractExtendedObject extends JJEventEmitter {
     get isRef() {
         return !this.data;
     }
+    // abstract isDataObject(value: any): boolean;
+    // expandData<T extends JJAbstractExtendedObject<D, C, M, N> >(levels: number, level: number = 0, obj?: T | typeof this): void {
+    //     obj ??= this;
+    //     for (const [key, value] of Object.entries(obj.data ?? [])){
+    //         if (key !== 'id' and )
+    //     }
+    // };
     toJsonExt(source) {
         source ??= this;
         if (Array.isArray(source)) {

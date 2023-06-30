@@ -40,14 +40,14 @@
   },
   "homepage": "https://github.com/jjazzme/utils#readme",
   "devDependencies": {
-    "@types/node": "^18.15.3",
-    "typescript": "^4.9.5"
+    "@types/node": "^18.16.18",
+    "typescript": "^5.1.6"
   },
   "trash": {
     "main": "./dist/src/index.js"
   },
   "dependencies": {
     "fast-json-patch": "^3.1.1",
-    "nanoid": "^4.0.1"
+    "nanoid": "^4.0.2"
   }
 }

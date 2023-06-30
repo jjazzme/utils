@@ -68,7 +68,7 @@ abstract class JJAbstractUser<CT extends Record<string, true>, CN extends Record
 type TStoreConnectorACL = {
     id: string,
     type: 'thing' | 'query',
-    initialStrategy: 'denyAll' |
+    initialStrategy: 'denyAll' | 'allowAll'
 }
 
 abstract class JJAbstractStoreConnector<N extends string> extends JJEventEmitter{
@@ -168,13 +168,13 @@ abstract class JJAbstractExtendedObject<D, C, M, N extends string> extends JJEve
         return !this.data
     }
 
-    abstract isDataObject(value: any): boolean;
-    expandData<T extends JJAbstractExtendedObject<D, C, M, N> >(levels: number, level: number = 0, obj?: T | typeof this): void {
-        obj ??= this;
-        for (const [key, value] of Object.entries(obj.data ?? [])){
-            if (key !== 'id' and )
-        }
-    };
+    // abstract isDataObject(value: any): boolean;
+    // expandData<T extends JJAbstractExtendedObject<D, C, M, N> >(levels: number, level: number = 0, obj?: T | typeof this): void {
+    //     obj ??= this;
+    //     for (const [key, value] of Object.entries(obj.data ?? [])){
+    //         if (key !== 'id' and )
+    //     }
+    // };
 
 
     toJsonExt(source?: Record<string, any> | Array<any>): Record<string, any> | string | Array<any>{
@@ -211,5 +211,5 @@ export {
     JJAbstractExtendedObject,
     TJJAEOptions,
     JJAbstractStoreConnector,
-    TJJTableProperty.
+    TJJTableProperty
 };
