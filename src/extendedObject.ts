@@ -1,12 +1,14 @@
-import {JJEventEmitter} from "./index.js";
+import {JJDBRole, JJEventEmitter, TJJAbstractUser, TJJDBRole} from "./index.js";
+import {JJDBQuery} from "./extendedObjects/query.js";
+import {TJJAclEntry, TJJDeniedStrategy, TJJStrategyActions} from "./extendedObjects/entry.js";
 
-type TJJAEOptions<D, N extends string> = {
-    keys?: string[];
-    connector?: JJAbstractStoreConnector<N>;
+type TJJAEOptions<D, TN extends string, DB extends JJAbstractStoreConnector<TN>> = {
+    keys?: (keyof D)[];
+    connector?: DB;
 };
 
-type TJJTableProperty<N> = {
-    name: N;
+type TJJTableProperty<TN extends string> = {
+    name: TN;
     constructor: (i: TJJExtendedObject<any, any, any>, c: any) => any;
 }
 
@@ -17,78 +19,11 @@ type TJJExtendedObject<D, C, M> = string | {
     version?: number;
     saved?: number;
     data?: D;
-    chaos?: C;
-    _meta?: M;
+    chaos?: C; //for save
+    _meta?: M; // not for save
 };
 
-type TAbstractRoles<CT extends Record<string, true>> = {
-    root?: true;
-    administrator?: true;
-    author?: true;
-    moderator?: true;
-    user?: true;
-} & CT;
-
-type TAbstractRolesWeight<CN extends Record<string, number>> = {
-    root: 1000000;
-    administrator: 900000;
-    author: 300000;
-    moderator: 200000;
-    user: 100000;
-} & CN;
-
-abstract class JJAbstractRoles<CT extends Record<string, true>, CN extends Record<string, number>>  {
-    data?: TAbstractRoles<CT>
-    rolePriority: TAbstractRolesWeight<CN>;
-
-    constructor(s?: {data?: TAbstractRoles<CT>, rolePriority?: TAbstractRolesWeight<CN> }) {
-        if (s?.data) this.data = s.data
-        this.rolePriority = s?.rolePriority ?? {
-            root: 1000000,
-            administrator: 900000,
-            author: 300000,
-            moderator: 200000,
-            user: 100000,
-        } as TAbstractRolesWeight<any>;
-    }
-
-    abstract anonymous(): boolean;
-}
-
-abstract class JJAbstractUser<CT extends Record<string, true>, CN extends Record<string, number>> extends JJEventEmitter{
-    roles: JJAbstractRoles<CT, CN>
-    token: string;
-    tokenTTL: number;
-
-    protected constructor(s: Partial<JJAbstractUser<CT, CN>> ) {
-        super();
-    }
-}
-
-type TStoreConnectorACL = {
-    id: string,
-    type: 'thing' | 'query',
-    initialStrategy: 'denyAll' | 'allowAll'
-}
-
-abstract class JJAbstractStoreConnector<N extends string> extends JJEventEmitter{
-    tables: Record<N, TJJTableProperty<N>>;
-    token?: string;
-    protected constructor(tables: Record<N, TJJTableProperty<N>>) {
-        super();
-        this.tables = tables;
-    }
-
-    abstract open(): Promise<void>;
-    abstract close(): Promise<void>;
-
-    abstract save<D, C, M, T extends JJAbstractExtendedObject<D, C, M, N> >(s: T, token: string): Promise<T>; //Promise<(Record<string, any>  & { id: string; })[]>;
-    abstract delete<D, C, M, T extends JJAbstractExtendedObject<D, C, M, N> >(thing: string, token: string): Promise<(Record<string, any>  & { id: string; })[]>;
-    abstract get<T>(thing: string, token: string): T;
-    abstract query<T>(query: any, token: string): T;
-}
-
-abstract class JJAbstractExtendedObject<D, C, M, N extends string> extends JJEventEmitter{
+abstract class JJAbstractExtendedObject<D, C, M, TN extends string, DB extends JJAbstractStoreConnector<TN>> extends JJEventEmitter{
     id: string;
     created?: number;
     updated?: number;
@@ -97,11 +32,11 @@ abstract class JJAbstractExtendedObject<D, C, M, N extends string> extends JJEve
     data?: D;
     chaos?: C;
     _meta: M | Partial<M>;
-    _connector?: JJAbstractStoreConnector<N>;
+    _connector?: DB;
 
-    #options?: TJJAEOptions<D, N>
+    #options?: TJJAEOptions<D, TN, DB>
 
-    protected constructor(s: TJJExtendedObject<D, C, M>, tableProperties: Record<N, TJJTableProperty<N>>, options?: TJJAEOptions<D, N>) {
+    protected constructor(s: string | TJJExtendedObject<D, C, M>, tableProperties: Record<TN, TJJTableProperty<TN>>, options?: TJJAEOptions<D, TN, DB>) {
         super();
         if (options) this.#options = options;
         if (options?.connector) this._connector = options.connector;
@@ -117,7 +52,7 @@ abstract class JJAbstractExtendedObject<D, C, M, N extends string> extends JJEve
             if (s.saved) this.saved = s.saved;
             if (options?.keys && s.data) {
                 for (const [key] of Object.entries(s.data)){
-                    if (!options.keys.includes(key)) delete s.data[key as keyof D];
+                    if (!(options.keys as string[]).includes(key)) delete s.data[key as keyof D];
                 }
             }
             this.data = s.data;
@@ -126,7 +61,6 @@ abstract class JJAbstractExtendedObject<D, C, M, N extends string> extends JJEve
                     if (Array.isArray(value)) {
                         value.forEach((val, ind) => {
                             const instance = this.#stringOrObjectToInstance(val, tableProperties, this._connector);
-                            const t = this.data![key as keyof D] as any[];
                             if (instance) (this.data![key as keyof D] as any[])[ind] = instance;
                         })
                     } else {
@@ -144,19 +78,19 @@ abstract class JJAbstractExtendedObject<D, C, M, N extends string> extends JJEve
         }
     }
 
-    #stringIsIdOfTable(str: string): N | false {
+    #stringIsIdOfTable(str: string): TN | false {
         const reg = /^[a-zA-Z_0-9]+:[a-zA-Z_0-9]{9,42}$/gm;
         const match = reg.exec(str);
-        return match ? match[1] as N : false;
+        return match ? match[1] as TN : false;
     }
-    #stringOrObjectToInstance(value: any, tableProperties: Record<N, TJJTableProperty<N>>, connector: JJAbstractStoreConnector<N> | undefined): any {
+    #stringOrObjectToInstance(value: any, tableProperties: Record<TN, TJJTableProperty<TN>>, connector: JJAbstractStoreConnector<TN> | undefined): any {
         if (!(value && (typeof value === 'string' || value.id))) return false
         const maybeId = typeof value === 'string' ? value : (value as any).id;
 
         const name = this.#stringIsIdOfTable(maybeId);
         if (!name) return false;
 
-        const entry = Object.entries(tableProperties).find(([key, value])=>key===name);
+        const entry = Object.entries(tableProperties).find(([key])=>key===name);
         if (entry) {
             const constructor =  entry[1] as (i: TJJExtendedObject<any, any, any>, c: any) => any;
             return constructor(value, connector);
@@ -167,15 +101,6 @@ abstract class JJAbstractExtendedObject<D, C, M, N extends string> extends JJEve
     get isRef(): boolean {
         return !this.data
     }
-
-    // abstract isDataObject(value: any): boolean;
-    // expandData<T extends JJAbstractExtendedObject<D, C, M, N> >(levels: number, level: number = 0, obj?: T | typeof this): void {
-    //     obj ??= this;
-    //     for (const [key, value] of Object.entries(obj.data ?? [])){
-    //         if (key !== 'id' and )
-    //     }
-    // };
-
 
     toJsonExt(source?: Record<string, any> | Array<any>): Record<string, any> | string | Array<any>{
         source ??= this;
@@ -204,12 +129,105 @@ abstract class JJAbstractExtendedObject<D, C, M, N extends string> extends JJEve
             return target;
         }
     }
-};
+}
+
+abstract class JJAbstractStoreConnector<TN extends string> extends JJEventEmitter{
+    tables: Record<TN, TJJTableProperty<TN>>;
+    queries?: JJDBQuery
+    rootToken?: string;
+    roles?: JJDBRole[];
+    acl: JJAcl;
+
+    protected constructor(
+        tables: Record<TN, TJJTableProperty<TN>>,
+        options?: {
+            rootToken?: string,
+            queries?:  JJDBQuery,
+            roles?: JJDBRole[],
+            acl?: JJAcl,
+        }) {
+        super();
+        this.tables = tables;
+        this.rootToken = options?.rootToken;
+        this.roles = options?.roles;
+        this.queries = options?.queries;
+        this.acl = options?.acl ?? new JJAcl();
+    }
+
+    abstract open(): Promise<void>;
+    abstract close(): Promise<void>;
+
+    abstract save<D, C, M, T extends JJAbstractExtendedObject<D, C, M, TN, JJAbstractStoreConnector<TN>>>(s: T, token: string): Promise<any>; //Promise<(Record<string, any>  & { id: string; })[]>;
+    abstract delete<D, C, M, T extends JJAbstractExtendedObject<D, C, M, TN, JJAbstractStoreConnector<TN>> >(thing: string, token: string): Promise<any>; //Promise<(Record<string, any>  & { id: string; })[]>;
+    abstract getOne<D, C, M, T extends JJAbstractExtendedObject<D, C, M, TN, JJAbstractStoreConnector<TN>>>(thing: string, token: string): Promise<T>;
+    abstract getAll<D, C, M, T extends JJAbstractExtendedObject<D, C, M, TN, JJAbstractStoreConnector<TN>>>(thing: string, token: string): Promise<T[]>;
+    abstract query(queryNameOrId: string, token: string): Promise<any>;
+}
+
+class JJAcl{
+    defaultDeniedStrategy: TJJDeniedStrategy;
+    entriesCore: TJJAclEntry[];
+    anonymousRoleId: string;
+    rootRoleId: string;
+    rootToken?: string;
+    getSubjectsIdByToken: (token: string) => Promise<[string]>;// обратить внимание на порядок
+
+    constructor(s?: {
+        defaultDeniedStrategy?: TJJDeniedStrategy,
+        entriesCore?: TJJAclEntry[];
+        usersCore?: TJJAbstractUser[];
+        anonymousRoleId?: string;
+        rootRoleId?: string;
+        getSubjectByToken: (token: string) => Promise<[string]>;
+        rootToken?: string;
+    }) {
+        this.rootToken = s?.rootToken;
+        this.defaultDeniedStrategy = s?.defaultDeniedStrategy ?? {};
+        this.entriesCore = s?.entriesCore ?? [];
+        this.anonymousRoleId = s?.anonymousRoleId ?? 'dbRoles:anonymous';
+        this.rootRoleId = s?.rootRoleId ?? 'dbRoles:root';
+        const defGetSubjectsIdByToken: (token: string) => Promise<[string]> = async (token: string) => {
+            return this.rootToken
+                ? token === this.rootToken
+                    ? [this.rootRoleId]
+                    : [this.anonymousRoleId]
+                : [this.anonymousRoleId];
+        }
+        this.getSubjectsIdByToken = s?.getSubjectByToken ?? defGetSubjectsIdByToken;
+    }
+
+    async allow(action: TJJStrategyActions, token: string, objectId: string): Promise<boolean> {
+        if (this.rootToken && token === this.rootToken) return true;
+        const subjectsId = await this.getSubjectsIdByToken(token);
+        let result = !this.defaultDeniedStrategy[action];
+
+        for (const subjectId of subjectsId) {
+            const entry = this.entriesCore.find(ent => ent.subjectId === subjectId && ent.objectId === objectId) ?? this.entriesCore.find(ent => ent.subjectId == undefined && ent.objectId === objectId);
+            if (entry) {
+                if (entry.denied) {
+                    if (!entry.denied[action] !== result) {
+                        result = !result;
+                        break;
+                    }
+                } else {
+                    if (!result) {
+                        result = !result;
+                        break;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+}
+
+
 
 export {
     TJJExtendedObject,
     JJAbstractExtendedObject,
     TJJAEOptions,
     JJAbstractStoreConnector,
-    TJJTableProperty
+    TJJTableProperty,
+    JJAcl
 };

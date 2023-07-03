@@ -1,0 +1,1 @@
+{"version":3,"file":"entry.js","sourceRoot":"","sources":["../../../src/extendedObjects/entry.ts"],"names":[],"mappings":"AAAA,OAAO,EACH,wBAAwB,EAK3B,MAAM,sBAAsB,CAAC;AAW9B,MAAM,UAAW,SAAQ,wBAA6F;IAElH,YAAY,CAAwD,EAAE,eAAyD,EAAE,OAA6E;QAC1M,KAAK,CAAC,CAAC,EAAE,eAAe,EAAE,OAAO,CAAC,CAAC;IACvC,CAAC;CACJ;AAED,OAAO,EAEH,UAAU,EAGb,CAAA"}

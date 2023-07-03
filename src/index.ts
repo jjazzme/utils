@@ -1,6 +1,4 @@
 import {customAlphabet} from "nanoid";
-import {JJBaseObject, JJEventEmitter, TJJEventDataPacket} from "./baseObject.js";
-import {TJJExtendedObject, JJAbstractExtendedObject, TJJAEOptions, JJAbstractStoreConnector} from "./extendedObject.js"
 import {execSync} from "child_process";
 import {readdir} from "fs/promises";
 import fs from "fs";
@@ -116,6 +114,8 @@ class DynamicInstance {
 
 export * from "./baseObject.js";
 export * from "./extendedObject.js"
+export * from "./extendedObjects/user.js"
+export * from "./extendedObjects/role.js"
 
 export {
     utils,

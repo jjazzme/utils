@@ -1,0 +1,1 @@
+{"version":3,"file":"role.js","sourceRoot":"","sources":["../../../src/extendedObjects/role.ts"],"names":[],"mappings":"AAAA,OAAO,EACH,wBAAwB,EAK3B,MAAM,sBAAsB,CAAC;AAQ9B,MAAM,QAAS,SAAQ,wBAA2F;IAE9G,YAAY,CAAsD,EAAE,eAAyD,EAAE,OAA2E;QACtM,KAAK,CAAC,CAAC,EAAE,eAAe,EAAE,OAAO,CAAC,CAAC;IACvC,CAAC;CACJ;AAED,OAAO,EAEH,QAAQ,EACX,CAAA"}

@@ -1,27 +1,4 @@
 import { JJEventEmitter } from "./index.js";
-class JJAbstractRoles {
-    data;
-    rolePriority;
-    constructor(s) {
-        if (s?.data)
-            this.data = s.data;
-        this.rolePriority = s?.rolePriority ?? {
-            root: 1000000,
-            administrator: 900000,
-            author: 300000,
-            moderator: 200000,
-            user: 100000,
-        };
-    }
-}
-class JJAbstractStoreConnector extends JJEventEmitter {
-    tables;
-    token;
-    constructor(tables) {
-        super();
-        this.tables = tables;
-    }
-}
 class JJAbstractExtendedObject extends JJEventEmitter {
     id;
     created;
@@ -64,7 +41,6 @@ class JJAbstractExtendedObject extends JJEventEmitter {
                     if (Array.isArray(value)) {
                         value.forEach((val, ind) => {
                             const instance = this.#stringOrObjectToInstance(val, tableProperties, this._connector);
-                            const t = this.data[key];
                             if (instance)
                                 this.data[key][ind] = instance;
                         });
@@ -98,7 +74,7 @@ class JJAbstractExtendedObject extends JJEventEmitter {
         const name = this.#stringIsIdOfTable(maybeId);
         if (!name)
             return false;
-        const entry = Object.entries(tableProperties).find(([key, value]) => key === name);
+        const entry = Object.entries(tableProperties).find(([key]) => key === name);
         if (entry) {
             const constructor = entry[1];
             return constructor(value, connector);
@@ -108,13 +84,6 @@ class JJAbstractExtendedObject extends JJEventEmitter {
     get isRef() {
         return !this.data;
     }
-    // abstract isDataObject(value: any): boolean;
-    // expandData<T extends JJAbstractExtendedObject<D, C, M, N> >(levels: number, level: number = 0, obj?: T | typeof this): void {
-    //     obj ??= this;
-    //     for (const [key, value] of Object.entries(obj.data ?? [])){
-    //         if (key !== 'id' and )
-    //     }
-    // };
     toJsonExt(source) {
         source ??= this;
         if (Array.isArray(source)) {
@@ -145,6 +114,67 @@ class JJAbstractExtendedObject extends JJEventEmitter {
         }
     }
 }
-;
-export { JJAbstractExtendedObject, JJAbstractStoreConnector };
+class JJAbstractStoreConnector extends JJEventEmitter {
+    tables;
+    queries;
+    rootToken;
+    roles;
+    acl;
+    constructor(tables, options) {
+        super();
+        this.tables = tables;
+        this.rootToken = options?.rootToken;
+        this.roles = options?.roles;
+        this.queries = options?.queries;
+        this.acl = options?.acl ?? new JJAcl();
+    }
+}
+class JJAcl {
+    defaultDeniedStrategy;
+    entriesCore;
+    anonymousRoleId;
+    rootRoleId;
+    rootToken;
+    getSubjectsIdByToken; // обратить внимание на порядок
+    constructor(s) {
+        this.rootToken = s?.rootToken;
+        this.defaultDeniedStrategy = s?.defaultDeniedStrategy ?? {};
+        this.entriesCore = s?.entriesCore ?? [];
+        this.anonymousRoleId = s?.anonymousRoleId ?? 'dbRoles:anonymous';
+        this.rootRoleId = s?.rootRoleId ?? 'dbRoles:root';
+        const defGetSubjectsIdByToken = async (token) => {
+            return this.rootToken
+                ? token === this.rootToken
+                    ? [this.rootRoleId]
+                    : [this.anonymousRoleId]
+                : [this.anonymousRoleId];
+        };
+        this.getSubjectsIdByToken = s?.getSubjectByToken ?? defGetSubjectsIdByToken;
+    }
+    async allow(action, token, objectId) {
+        if (this.rootToken && token === this.rootToken)
+            return true;
+        const subjectsId = await this.getSubjectsIdByToken(token);
+        let result = !this.defaultDeniedStrategy[action];
+        for (const subjectId of subjectsId) {
+            const entry = this.entriesCore.find(ent => ent.subjectId === subjectId && ent.objectId === objectId) ?? this.entriesCore.find(ent => ent.subjectId == undefined && ent.objectId === objectId);
+            if (entry) {
+                if (entry.denied) {
+                    if (!entry.denied[action] !== result) {
+                        result = !result;
+                        break;
+                    }
+                }
+                else {
+                    if (!result) {
+                        result = !result;
+                        break;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+}
+export { JJAbstractExtendedObject, JJAbstractStoreConnector, JJAcl };
 //# sourceMappingURL=extendedObject.js.map

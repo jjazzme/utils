@@ -102,5 +102,7 @@ class DynamicInstance {
 }
 export * from "./baseObject.js";
 export * from "./extendedObject.js";
+export * from "./extendedObjects/user.js";
+export * from "./extendedObjects/role.js";
 export { utils, DynamicInstance, };
 //# sourceMappingURL=index.js.map
