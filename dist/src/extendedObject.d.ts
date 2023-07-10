@@ -1,9 +1,13 @@
-import { JJDBRole, JJEventEmitter, TJJAbstractUser } from "./index.js";
-import { JJDBQuery } from "./extendedObjects/query.js";
-import { TJJAclEntry, TJJDeniedStrategy, TJJStrategyActions } from "./extendedObjects/entry.js";
+import { JJEventEmitter } from "./index.js";
+import { JJAbstractStoreConnector } from "./extendedObject/storeConnector.js";
 type TJJAEOptions<D, TN extends string, DB extends JJAbstractStoreConnector<TN>> = {
     keys?: (keyof D)[];
+    unique?: (keyof D)[];
     connector?: DB;
+    transformations?: {
+        save?: Record<keyof D, (value: any) => any>;
+        read?: Record<keyof D, (value: any) => any>;
+    };
 };
 type TJJTableProperty<TN extends string> = {
     name: TN;
@@ -16,6 +20,7 @@ type TJJExtendedObject<D, C, M> = string | {
     version?: number;
     saved?: number;
     data?: D;
+    unique?: (keyof D)[];
     chaos?: C;
     _meta?: M;
 };
@@ -30,46 +35,11 @@ declare abstract class JJAbstractExtendedObject<D, C, M, TN extends string, DB e
     chaos?: C;
     _meta: M | Partial<M>;
     _connector?: DB;
+    _lastSaved?: any;
     protected constructor(s: string | TJJExtendedObject<D, C, M>, tableProperties: Record<TN, TJJTableProperty<TN>>, options?: TJJAEOptions<D, TN, DB>);
     get isRef(): boolean;
     toJsonExt(source?: Record<string, any> | Array<any>): Record<string, any> | string | Array<any>;
+    create<T extends JJAbstractExtendedObject<any, any, any, string, JJAbstractStoreConnector<string>>>(s: T, token: string): Promise<T>;
+    update<T extends JJAbstractExtendedObject<any, any, any, string, JJAbstractStoreConnector<string>>>(s: T, token: string): Promise<T>;
 }
-declare abstract class JJAbstractStoreConnector<TN extends string> extends JJEventEmitter {
-    tables: Record<TN, TJJTableProperty<TN>>;
-    queries?: JJDBQuery;
-    rootToken?: string;
-    roles?: JJDBRole[];
-    acl: JJAcl;
-    protected constructor(tables: Record<TN, TJJTableProperty<TN>>, options?: {
-        rootToken?: string;
-        queries?: JJDBQuery;
-        roles?: JJDBRole[];
-        acl?: JJAcl;
-    });
-    abstract open(): Promise<void>;
-    abstract close(): Promise<void>;
-    abstract save<D, C, M, T extends JJAbstractExtendedObject<D, C, M, TN, JJAbstractStoreConnector<TN>>>(s: T, token: string): Promise<any>;
-    abstract delete<D, C, M, T extends JJAbstractExtendedObject<D, C, M, TN, JJAbstractStoreConnector<TN>>>(thing: string, token: string): Promise<any>;
-    abstract getOne<D, C, M, T extends JJAbstractExtendedObject<D, C, M, TN, JJAbstractStoreConnector<TN>>>(thing: string, token: string): Promise<T>;
-    abstract getAll<D, C, M, T extends JJAbstractExtendedObject<D, C, M, TN, JJAbstractStoreConnector<TN>>>(thing: string, token: string): Promise<T[]>;
-    abstract query(queryNameOrId: string, token: string): Promise<any>;
-}
-declare class JJAcl {
-    defaultDeniedStrategy: TJJDeniedStrategy;
-    entriesCore: TJJAclEntry[];
-    anonymousRoleId: string;
-    rootRoleId: string;
-    rootToken?: string;
-    getSubjectsIdByToken: (token: string) => Promise<[string]>;
-    constructor(s?: {
-        defaultDeniedStrategy?: TJJDeniedStrategy;
-        entriesCore?: TJJAclEntry[];
-        usersCore?: TJJAbstractUser[];
-        anonymousRoleId?: string;
-        rootRoleId?: string;
-        getSubjectByToken: (token: string) => Promise<[string]>;
-        rootToken?: string;
-    });
-    allow(action: TJJStrategyActions, token: string, objectId: string): Promise<boolean>;
-}
-export { TJJExtendedObject, JJAbstractExtendedObject, TJJAEOptions, JJAbstractStoreConnector, TJJTableProperty, JJAcl };
+export { TJJExtendedObject, JJAbstractExtendedObject, TJJAEOptions, TJJTableProperty, };

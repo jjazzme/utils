@@ -1,10 +1,16 @@
 import {JJDBRole, JJEventEmitter, TJJAbstractUser, TJJDBRole} from "./index.js";
-import {JJDBQuery} from "./extendedObjects/query.js";
-import {TJJAclEntry, TJJDeniedStrategy, TJJStrategyActions} from "./extendedObjects/entry.js";
+import {JJDBQuery} from "./extendedObject/query.js";
+import {TJJAclEntry, TJJDeniedStrategy, TJJStrategyActions} from "./extendedObject/entry.js";
+import {JJAbstractStoreConnector, JJAcl} from "./extendedObject/storeConnector.js";
 
 type TJJAEOptions<D, TN extends string, DB extends JJAbstractStoreConnector<TN>> = {
     keys?: (keyof D)[];
+    unique?: (keyof D)[];
     connector?: DB;
+    transformations?: {
+        save?: Record<keyof D, (value: any)=>any>;
+        read?: Record<keyof D, (value: any)=>any>
+    }
 };
 
 type TJJTableProperty<TN extends string> = {
@@ -19,6 +25,7 @@ type TJJExtendedObject<D, C, M> = string | {
     version?: number;
     saved?: number;
     data?: D;
+    unique?: (keyof D)[]
     chaos?: C; //for save
     _meta?: M; // not for save
 };
@@ -33,6 +40,7 @@ abstract class JJAbstractExtendedObject<D, C, M, TN extends string, DB extends J
     chaos?: C;
     _meta: M | Partial<M>;
     _connector?: DB;
+    _lastSaved?: any;
 
     #options?: TJJAEOptions<D, TN, DB>
 
@@ -97,11 +105,9 @@ abstract class JJAbstractExtendedObject<D, C, M, TN extends string, DB extends J
         }
         return false;
     }
-
     get isRef(): boolean {
         return !this.data
     }
-
     toJsonExt(source?: Record<string, any> | Array<any>): Record<string, any> | string | Array<any>{
         source ??= this;
         if (Array.isArray(source)) {
@@ -129,105 +135,20 @@ abstract class JJAbstractExtendedObject<D, C, M, TN extends string, DB extends J
             return target;
         }
     }
-}
 
-abstract class JJAbstractStoreConnector<TN extends string> extends JJEventEmitter{
-    tables: Record<TN, TJJTableProperty<TN>>;
-    queries?: JJDBQuery
-    rootToken?: string;
-    roles?: JJDBRole[];
-    acl: JJAcl;
-
-    protected constructor(
-        tables: Record<TN, TJJTableProperty<TN>>,
-        options?: {
-            rootToken?: string,
-            queries?:  JJDBQuery,
-            roles?: JJDBRole[],
-            acl?: JJAcl,
-        }) {
-        super();
-        this.tables = tables;
-        this.rootToken = options?.rootToken;
-        this.roles = options?.roles;
-        this.queries = options?.queries;
-        this.acl = options?.acl ?? new JJAcl();
-    }
-
-    abstract open(): Promise<void>;
-    abstract close(): Promise<void>;
-
-    abstract save<D, C, M, T extends JJAbstractExtendedObject<D, C, M, TN, JJAbstractStoreConnector<TN>>>(s: T, token: string): Promise<any>; //Promise<(Record<string, any>  & { id: string; })[]>;
-    abstract delete<D, C, M, T extends JJAbstractExtendedObject<D, C, M, TN, JJAbstractStoreConnector<TN>> >(thing: string, token: string): Promise<any>; //Promise<(Record<string, any>  & { id: string; })[]>;
-    abstract getOne<D, C, M, T extends JJAbstractExtendedObject<D, C, M, TN, JJAbstractStoreConnector<TN>>>(thing: string, token: string): Promise<T>;
-    abstract getAll<D, C, M, T extends JJAbstractExtendedObject<D, C, M, TN, JJAbstractStoreConnector<TN>>>(thing: string, token: string): Promise<T[]>;
-    abstract query(queryNameOrId: string, token: string): Promise<any>;
-}
-
-class JJAcl{
-    defaultDeniedStrategy: TJJDeniedStrategy;
-    entriesCore: TJJAclEntry[];
-    anonymousRoleId: string;
-    rootRoleId: string;
-    rootToken?: string;
-    getSubjectsIdByToken: (token: string) => Promise<[string]>;// обратить внимание на порядок
-
-    constructor(s?: {
-        defaultDeniedStrategy?: TJJDeniedStrategy,
-        entriesCore?: TJJAclEntry[];
-        usersCore?: TJJAbstractUser[];
-        anonymousRoleId?: string;
-        rootRoleId?: string;
-        getSubjectByToken: (token: string) => Promise<[string]>;
-        rootToken?: string;
-    }) {
-        this.rootToken = s?.rootToken;
-        this.defaultDeniedStrategy = s?.defaultDeniedStrategy ?? {};
-        this.entriesCore = s?.entriesCore ?? [];
-        this.anonymousRoleId = s?.anonymousRoleId ?? 'dbRoles:anonymous';
-        this.rootRoleId = s?.rootRoleId ?? 'dbRoles:root';
-        const defGetSubjectsIdByToken: (token: string) => Promise<[string]> = async (token: string) => {
-            return this.rootToken
-                ? token === this.rootToken
-                    ? [this.rootRoleId]
-                    : [this.anonymousRoleId]
-                : [this.anonymousRoleId];
-        }
-        this.getSubjectsIdByToken = s?.getSubjectByToken ?? defGetSubjectsIdByToken;
-    }
-
-    async allow(action: TJJStrategyActions, token: string, objectId: string): Promise<boolean> {
-        if (this.rootToken && token === this.rootToken) return true;
-        const subjectsId = await this.getSubjectsIdByToken(token);
-        let result = !this.defaultDeniedStrategy[action];
-
-        for (const subjectId of subjectsId) {
-            const entry = this.entriesCore.find(ent => ent.subjectId === subjectId && ent.objectId === objectId) ?? this.entriesCore.find(ent => ent.subjectId == undefined && ent.objectId === objectId);
-            if (entry) {
-                if (entry.denied) {
-                    if (!entry.denied[action] !== result) {
-                        result = !result;
-                        break;
-                    }
-                } else {
-                    if (!result) {
-                        result = !result;
-                        break;
-                    }
-                }
-            }
-        }
-        return result;
+    async create<T extends JJAbstractExtendedObject<any, any, any, string, JJAbstractStoreConnector<string>>>(s: T, token: string): Promise<T> {
+        if (!(await this._connector.acl.allow('c', token, s.id))) throw Error('401');
+        return this.create_(s);
+    };
+    async update<T extends JJAbstractExtendedObject<any, any, any, string, JJAbstractStoreConnector<string>>>(s: T, token: string): Promise<T> {
+        if (!(await this.acl.allow('u', token, s.id))) throw Error('401');
+        return this.update_(s);
     }
 }
-
-
 
 export {
     TJJExtendedObject,
     JJAbstractExtendedObject,
     TJJAEOptions,
-    JJAbstractStoreConnector,
     TJJTableProperty,
-    JJAcl
 };

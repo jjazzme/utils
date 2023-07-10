@@ -1,5 +1,5 @@
 import { JJAbstractExtendedObject, JJAbstractStoreConnector, TJJAEOptions, TJJExtendedObject, TJJTableProperty } from "../extendedObject.js";
-type TJJStrategyActions = 'r' | 'w' | 'd' | 'e';
+type TJJStrategyActions = 'r' | 'a' | 'u' | 'c' | 'd' | 'e';
 type TJJDeniedStrategy = Partial<Record<TJJStrategyActions, true>>;
 type TJJAclEntry = {
     subjectId?: string;

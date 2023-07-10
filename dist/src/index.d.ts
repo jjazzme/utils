@@ -31,6 +31,6 @@ declare class DynamicInstance {
 }
 export * from "./baseObject.js";
 export * from "./extendedObject.js";
-export * from "./extendedObjects/user.js";
-export * from "./extendedObjects/role.js";
+export * from "./extendedObject/user.js";
+export * from "./extendedObject/role.js";
 export { utils, TDynamicInstance, DynamicInstance, };

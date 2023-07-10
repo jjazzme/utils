@@ -9,6 +9,7 @@ class JJAbstractExtendedObject extends JJEventEmitter {
     chaos;
     _meta;
     _connector;
+    _lastSaved;
     #options;
     constructor(s, tableProperties, options) {
         super();
@@ -113,68 +114,17 @@ class JJAbstractExtendedObject extends JJEventEmitter {
             return target;
         }
     }
-}
-class JJAbstractStoreConnector extends JJEventEmitter {
-    tables;
-    queries;
-    rootToken;
-    roles;
-    acl;
-    constructor(tables, options) {
-        super();
-        this.tables = tables;
-        this.rootToken = options?.rootToken;
-        this.roles = options?.roles;
-        this.queries = options?.queries;
-        this.acl = options?.acl ?? new JJAcl();
+    async create(s, token) {
+        if (!(await this._connector.acl.allow('c', token, s.id)))
+            throw Error('401');
+        return this.create_(s);
+    }
+    ;
+    async update(s, token) {
+        if (!(await this.acl.allow('u', token, s.id)))
+            throw Error('401');
+        return this.update_(s);
     }
 }
-class JJAcl {
-    defaultDeniedStrategy;
-    entriesCore;
-    anonymousRoleId;
-    rootRoleId;
-    rootToken;
-    getSubjectsIdByToken; // обратить внимание на порядок
-    constructor(s) {
-        this.rootToken = s?.rootToken;
-        this.defaultDeniedStrategy = s?.defaultDeniedStrategy ?? {};
-        this.entriesCore = s?.entriesCore ?? [];
-        this.anonymousRoleId = s?.anonymousRoleId ?? 'dbRoles:anonymous';
-        this.rootRoleId = s?.rootRoleId ?? 'dbRoles:root';
-        const defGetSubjectsIdByToken = async (token) => {
-            return this.rootToken
-                ? token === this.rootToken
-                    ? [this.rootRoleId]
-                    : [this.anonymousRoleId]
-                : [this.anonymousRoleId];
-        };
-        this.getSubjectsIdByToken = s?.getSubjectByToken ?? defGetSubjectsIdByToken;
-    }
-    async allow(action, token, objectId) {
-        if (this.rootToken && token === this.rootToken)
-            return true;
-        const subjectsId = await this.getSubjectsIdByToken(token);
-        let result = !this.defaultDeniedStrategy[action];
-        for (const subjectId of subjectsId) {
-            const entry = this.entriesCore.find(ent => ent.subjectId === subjectId && ent.objectId === objectId) ?? this.entriesCore.find(ent => ent.subjectId == undefined && ent.objectId === objectId);
-            if (entry) {
-                if (entry.denied) {
-                    if (!entry.denied[action] !== result) {
-                        result = !result;
-                        break;
-                    }
-                }
-                else {
-                    if (!result) {
-                        result = !result;
-                        break;
-                    }
-                }
-            }
-        }
-        return result;
-    }
-}
-export { JJAbstractExtendedObject, JJAbstractStoreConnector, JJAcl };
+export { JJAbstractExtendedObject, };
 //# sourceMappingURL=extendedObject.js.map

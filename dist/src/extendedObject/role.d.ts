@@ -1,6 +1,5 @@
 import { JJAbstractExtendedObject, JJAbstractStoreConnector, TJJAEOptions, TJJExtendedObject, TJJTableProperty } from "../extendedObject.js";
 type TJJDBRole = {
-    id: string;
     name: string;
     weight: number;
     description?: string;

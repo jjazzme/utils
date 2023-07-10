@@ -6,7 +6,7 @@ import {
     TJJTableProperty
 } from "../extendedObject.js";
 import {TJJDBRole} from "./role.js";
-type TJJStrategyActions = 'r' | 'w' | 'd' | 'e' // read write delete execute
+type TJJStrategyActions = 'r' | 'a' | 'u' | 'c' | 'd' | 'e' // read 'read all' update create delete execute
 type TJJDeniedStrategy = Partial<Record<TJJStrategyActions, true>>;
 type TJJAclEntry = {
     subjectId?: string; // if undefined = for all
